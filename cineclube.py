@@ -70,7 +70,7 @@ st.title("🎬 Cine Clube")
 # =========================
 with st.expander("➕ Adicionar novo filme"):
 
-    busca = st.text_input("🎥 Digite o nome do filme")
+    busca = st.text_input("🎥 Digite o título do filme (ou só o começo do título) e aperte Enter")
 
     filme_escolhido = None
     diretor = None
@@ -85,7 +85,7 @@ with st.expander("➕ Adicionar novo filme"):
                 for f in resultados[:5]
             }
 
-            escolha = st.selectbox("Sugestões", list(opcoes.keys()))
+            escolha = st.selectbox("Resultado", list(opcoes.keys()))
 
             filme_escolhido = opcoes[escolha]
             diretor = buscar_diretor(filme_escolhido["id"])
