@@ -14,7 +14,7 @@ from db import (
 # =========================
 # CONFIGURAÇÕES
 # =========================
-st.set_page_config(page_title="🎬 Cine Clube", page_icon="🎬")
+st.set_page_config(page_title="Cine Clube", page_icon="🎬")
 
 ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD")
 
@@ -137,7 +137,7 @@ if st.session_state.movie_list:
                 </div>
             """, unsafe_allow_html=True)
 
-    if st.button("🎲 INICIAR SORTEIO FATAL", type="primary", use_container_width=True):
+    if st.button("🎲 INICIAR SORTEIO", type="primary", use_container_width=True):
         placeholder = st.empty()
 
         roleta = random.sample(

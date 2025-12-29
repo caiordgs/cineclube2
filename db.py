@@ -40,6 +40,5 @@ def remover_filme(id_filme):
 def limpar_todos():
     supabase.table("sugestoes_filmes") \
         .delete() \
-        .neq("id", None) \
+        .gte("created_at", "1970-01-01") \
         .execute()
-
