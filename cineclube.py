@@ -91,3 +91,4 @@ if st.session_state.movie_list:
 
     # --- Mecanismo de Sorteio ---
     if st.button("🎲 SOR
+
