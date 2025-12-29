@@ -1,35 +1,25 @@
 import streamlit as st
-import pandas as pd
 import random
 import time
 import os
 
 from tmdb import buscar_filmes, buscar_diretor, poster_url
+from db import (
+    carregar_filmes,
+    salvar_filme,
+    remover_filme,
+    limpar_todos
+)
 
 # =========================
 # CONFIGURAÇÕES
 # =========================
 st.set_page_config(page_title="🎬 Cine Clube", page_icon="🎬")
 
-ARQUIVO = "filmes.csv"
 ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD")
 
-# =========================
-# BANCO CSV
-# =========================
-def carregar():
-    if os.path.exists(ARQUIVO):
-        try:
-            return pd.read_csv(ARQUIVO).to_dict("records")
-        except:
-            return []
-    return []
-
-def salvar(lista):
-    pd.DataFrame(lista).to_csv(ARQUIVO, index=False)
-
 if "movie_list" not in st.session_state:
-    st.session_state.movie_list = carregar()
+    st.session_state.movie_list = carregar_filmes()
 
 # =========================
 # CSS
@@ -76,11 +66,10 @@ st.markdown("""
 st.title("🎬 Cine Clube")
 
 # =========================
-# CADASTRO DE FILMES (TMDB)
+# CADASTRO DE FILMES
 # =========================
 with st.expander("➕ Adicionar novo filme"):
 
-    # ---------- BUSCA (FORA DO FORM) ----------
     busca = st.text_input("🎥 Digite o nome do filme")
 
     filme_escolhido = None
@@ -107,10 +96,8 @@ with st.expander("➕ Adicionar novo filme"):
 
             st.write(f"🎬 Diretor: **{diretor}**")
 
-    # ---------- FORM DE SUBMISSÃO ----------
     with st.form("form_adicionar_filme", clear_on_submit=True):
         pessoa = st.text_input("👤 Quem está indicando?")
-
         submitted = st.form_submit_button("Adicionar ao Cine Clube 🎬")
 
         if submitted:
@@ -119,17 +106,15 @@ with st.expander("➕ Adicionar novo filme"):
             elif not filme_escolhido:
                 st.warning("Selecione um filme da lista.")
             else:
-                st.session_state.movie_list.append({
-                    "titulo": filme_escolhido["title"],
-                    "diretor": diretor,
-                    "pessoa": pessoa,
-                    "poster": poster
-                })
-                salvar(st.session_state.movie_list)
+                salvar_filme(
+                    filme_escolhido["title"],
+                    diretor,
+                    pessoa,
+                    poster
+                )
+                st.session_state.movie_list = carregar_filmes()
                 st.success("🎬 Filme adicionado com sucesso!")
                 st.rerun()
-
-
 
 # =========================
 # LISTA DE FILMES
@@ -152,19 +137,20 @@ if st.session_state.movie_list:
                 </div>
             """, unsafe_allow_html=True)
 
-    # =========================
-    # SORTEIO
-    # =========================
     if st.button("🎲 INICIAR SORTEIO FATAL", type="primary", use_container_width=True):
         placeholder = st.empty()
 
-        for i in range(20):
-            escolha = random.choice(st.session_state.movie_list)
+        roleta = random.sample(
+            st.session_state.movie_list,
+            k=len(st.session_state.movie_list)
+        )
+
+        for escolha in roleta:
             placeholder.markdown(
                 f"<div class='roleta-texto'>{escolha['titulo']}</div>",
                 unsafe_allow_html=True
             )
-            time.sleep(0.05 + (i * 0.02))
+            time.sleep(0.08)
 
         vencedor = random.choice(st.session_state.movie_list)
         placeholder.empty()
@@ -179,9 +165,8 @@ if st.session_state.movie_list:
             </div>
         """, unsafe_allow_html=True)
 
-        # remove o filme sorteado
-        st.session_state.movie_list.remove(vencedor)
-        salvar(st.session_state.movie_list)
+        remover_filme(vencedor["id"])
+        st.session_state.movie_list = carregar_filmes()
 
 else:
     st.info("A lista está vazia. Adicione filmes para começar.")
@@ -192,9 +177,10 @@ else:
 st.sidebar.title("🔒 Admin")
 senha = st.sidebar.text_input("Senha", type="password")
 
-if senha == ADMIN_PASSWORD:
+if ADMIN_PASSWORD is None:
+    st.sidebar.warning("Senha de admin não configurada")
+elif senha == ADMIN_PASSWORD:
     if st.sidebar.button("Limpar lista"):
-        st.session_state.movie_list = []
-        if os.path.exists(ARQUIVO):
-            os.remove(ARQUIVO)
+        limpar_todos()
+        st.session_state.movie_list = carregar_filmes()
         st.rerun()
