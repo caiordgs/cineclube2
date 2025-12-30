@@ -8,7 +8,8 @@ from db import (
     carregar_filmes,
     salvar_filme,
     remover_filme,
-    limpar_todos
+    limpar_todos,
+    salvar_filme_sorteado
 )
 
 # =========================
@@ -110,8 +111,10 @@ with st.expander("➕ Adicionar novo filme"):
                     filme_escolhido["title"],
                     diretor,
                     pessoa,
-                    poster
+                    poster,
+                    filme_escolhido.get("release_date")
                 )
+
                 st.session_state.movie_list = carregar_filmes()
                 st.success("🎬 Filme adicionado com sucesso!")
                 st.rerun()
@@ -155,7 +158,6 @@ if st.session_state.movie_list:
         vencedor = random.choice(st.session_state.movie_list)
         placeholder.empty()
 
-        st.balloons()
         st.markdown(f"""
             <div class='vencedor-box'>
                 <p>O FILME DA SEMANA É:</p>
@@ -164,6 +166,14 @@ if st.session_state.movie_list:
                 <p>👤 Sugestão de: <b>{vencedor['pessoa']}</b></p>
             </div>
         """, unsafe_allow_html=True)
+
+        salvar_filme_sorteado(
+            titulo=vencedor["titulo"],
+            diretor=vencedor["diretor"],
+            pessoa=vencedor["pessoa"],
+            poster=vencedor["poster"],
+            data_lancamento=vencedor.get("data_lancamento")
+        )
 
         remover_filme(vencedor["id"])
         st.session_state.movie_list = carregar_filmes()
