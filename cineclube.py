@@ -168,7 +168,7 @@ if st.session_state.movie_list:
 
     if not pode_sortear:
         st.button(
-            "🎲 INICIAR SORTEIO FATAL 🔒",
+            "🎲 INICIAR SORTEIO!",
             type="primary",
             use_container_width=True,
             disabled=True,
@@ -177,7 +177,7 @@ if st.session_state.movie_list:
         st.caption("🔒 Apenas administradores podem realizar o sorteio.")
     else:
         if st.button(
-            "🎲 INICIAR SORTEIO FATAL",
+            "🎲 INICIAR SORTEIO!",
             type="primary",
             use_container_width=True,
             key="sortear"
@@ -199,7 +199,6 @@ if st.session_state.movie_list:
             vencedor = random.choice(st.session_state.movie_list)
             placeholder.empty()
 
-            st.balloons()
             st.markdown(f"""
                 <div class='vencedor-box'>
                     <p>O FILME DA SEMANA É:</p>
