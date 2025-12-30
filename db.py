@@ -63,19 +63,6 @@ def salvar_filme_sorteado(
     }).execute()
 
 
-def salvar_review(
-    filme_sorteado_id,
-    autor,
-    comentario,
-    nota
-):
-    supabase.table("reviews_filmes").insert({
-        "filme_sorteado_id": filme_sorteado_id,
-        "autor": autor,
-        "comentario": comentario,
-        "nota": nota
-    }).execute()
-
 def carregar_filmes_sorteados():
     resp = supabase.table("filmes_sorteados") \
         .select("*") \
