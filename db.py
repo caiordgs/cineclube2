@@ -74,22 +74,29 @@ def salvar_review(
     }).execute()
 
 def carregar_filmes_sorteados():
-        resp = supabase.table("filmes_sorteados") \
-            .select("*") \
-            .order("data_sorteio", desc=True) \
-            .execute()
+    resp = supabase.table("filmes_sorteados_br") \
+        .select("*") \
+        .order("data_sorteio_br", desc=True) \
+        .execute()
 
-        return resp.data or []
+    return resp.data or []
 
-def salvar_review(filme_sorteado_id, autor, comentario, nota):
-        supabase.table("reviews_filmes").insert(
-            {
-                "filme_sorteado_id": filme_sorteado_id,
-                "autor":             autor,
-                "comentario":        comentario,
-                "nota":              nota
-            }
-        ).execute()
+
+def salvar_review(
+    filme_sorteado_id,
+    autor,
+    comentario,
+    nota,
+    diretor
+):
+    supabase.table("reviews_filmes").insert({
+        "filme_sorteado_id": filme_sorteado_id,
+        "autor": autor,
+        "comentario": comentario,
+        "nota": nota,
+        "diretor": diretor
+    }).execute()
+
 
 def carregar_reviews(filme_sorteado_id):
         resp = supabase.table("reviews_filmes") \
@@ -99,4 +106,24 @@ def carregar_reviews(filme_sorteado_id):
             .execute()
 
         return resp.data or []
+
+def carregar_filme_da_semana():
+    resp = supabase.table("filmes_sorteados") \
+        .select("*") \
+        .order("data_sorteio", desc=True) \
+        .limit(1) \
+        .execute()
+
+    data = resp.data or []
+    return data[0] if data else None
+
+def review_ja_existe(filme_sorteado_id, autor):
+    resp = supabase.table("reviews_filmes") \
+        .select("id") \
+        .eq("filme_sorteado_id", filme_sorteado_id) \
+        .eq("autor", autor) \
+        .execute()
+
+    return bool(resp.data)
+
 
