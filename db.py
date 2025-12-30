@@ -1,5 +1,7 @@
 import os
 from supabase import create_client
+from datetime import datetime, timezone
+
 
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SUPABASE_KEY")
@@ -27,10 +29,9 @@ def salvar_filme(titulo, diretor, pessoa, poster, data_lancamento):
         "diretor": diretor or "Desconhecido",
         "pessoa": pessoa.strip(),
         "poster": poster,
-        "data_lancamento": data_lancamento
+        "data_lancamento": data_lancamento,
+        "created_at": datetime.now(timezone.utc)
     }).execute()
-
-
 
 def remover_filme(id_filme):
     supabase.table("sugestoes_filmes") \
@@ -57,8 +58,10 @@ def salvar_filme_sorteado(
         "diretor": diretor,
         "pessoa": pessoa,
         "poster": poster,
-        "data_lancamento": data_lancamento
+        "data_lancamento": data_lancamento,
+        "data_sorteio": datetime.now(timezone.utc)  # ✅ UTC explícito
     }).execute()
+
 
 def salvar_review(
     filme_sorteado_id,
@@ -74,9 +77,9 @@ def salvar_review(
     }).execute()
 
 def carregar_filmes_sorteados():
-    resp = supabase.table("filmes_sorteados_br") \
+    resp = supabase.table("filmes_sorteados") \
         .select("*") \
-        .order("data_sorteio_br", desc=True) \
+        .order("data_sorteio", desc=True) \
         .execute()
 
     return resp.data or []
