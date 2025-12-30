@@ -67,6 +67,20 @@ st.markdown("""
 st.title("🎬 Cine Clube")
 
 # =========================
+# ADMIN
+# =========================
+st.sidebar.title("🔒 Admin")
+senha = st.sidebar.text_input("Senha", type="password")
+
+if ADMIN_PASSWORD is None:
+    st.sidebar.warning("Senha de admin não configurada")
+elif senha == ADMIN_PASSWORD:
+    if st.sidebar.button("Limpar lista"):
+        limpar_todos()
+        st.session_state.movie_list = carregar_filmes()
+        st.rerun()
+
+# =========================
 # CADASTRO DE FILMES
 # =========================
 with st.expander("➕ Adicionar novo filme"):
@@ -139,7 +153,6 @@ if st.session_state.movie_list:
                     <small>Direção: {f['diretor']} | Indicado por: {f['pessoa']}</small>
                 </div>
             """, unsafe_allow_html=True)
-        senha = st.sidebar.text_input("Senha", type="password")
 
         pode_sortear = (
                 ADMIN_PASSWORD is not None
@@ -203,16 +216,3 @@ if st.session_state.movie_list:
 else:
     st.info("A lista está vazia. Adicione filmes para começar.")
 
-# =========================
-# ADMIN
-# =========================
-st.sidebar.title("🔒 Admin")
-senha = st.sidebar.text_input("Senha", type="password")
-
-if ADMIN_PASSWORD is None:
-    st.sidebar.warning("Senha de admin não configurada")
-elif senha == ADMIN_PASSWORD:
-    if st.sidebar.button("Limpar lista"):
-        limpar_todos()
-        st.session_state.movie_list = carregar_filmes()
-        st.rerun()
