@@ -177,7 +177,7 @@ if st.session_state.movie_list:
         st.caption("🔒 Apenas administradores podem realizar o sorteio.")
     else:
         if st.button(
-            "🎲 INICIAR SORTEIO FATAL",
+            "🎲 INICIAR SORTEIO!",
             type="primary",
             use_container_width=True,
             key="sortear"
@@ -222,4 +222,5 @@ if st.session_state.movie_list:
 
 else:
     st.info("A lista está vazia. Adicione filmes para começar.")
+
 
