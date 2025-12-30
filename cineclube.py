@@ -19,6 +19,9 @@ st.set_page_config(page_title="Cine Clube", page_icon="🎬")
 
 ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD")
 
+# =========================
+# ESTADO
+# =========================
 if "movie_list" not in st.session_state:
     st.session_state.movie_list = carregar_filmes()
 
@@ -67,7 +70,7 @@ st.markdown("""
 st.title("🎬 Cine Clube")
 
 # =========================
-# ADMIN
+# ADMIN (SIDEBAR)
 # =========================
 st.sidebar.title("🔒 Admin")
 senha = st.sidebar.text_input("Senha", type="password")
@@ -85,7 +88,9 @@ elif senha == ADMIN_PASSWORD:
 # =========================
 with st.expander("➕ Adicionar novo filme"):
 
-    busca = st.text_input("🎥 Digite o título do filme (ou só o começo do título) e aperte Enter")
+    busca = st.text_input(
+        "🎥 Digite o título do filme (ou parte dele) e pressione Enter"
+    )
 
     filme_escolhido = None
     diretor = None
@@ -101,8 +106,8 @@ with st.expander("➕ Adicionar novo filme"):
             }
 
             escolha = st.selectbox("Resultado", list(opcoes.keys()))
-
             filme_escolhido = opcoes[escolha]
+
             diretor = buscar_diretor(filme_escolhido["id"])
             poster = poster_url(filme_escolhido.get("poster_path"))
 
@@ -128,7 +133,6 @@ with st.expander("➕ Adicionar novo filme"):
                     poster,
                     filme_escolhido.get("release_date")
                 )
-
                 st.session_state.movie_list = carregar_filmes()
                 st.success("🎬 Filme adicionado com sucesso!")
                 st.rerun()
@@ -154,65 +158,68 @@ if st.session_state.movie_list:
                 </div>
             """, unsafe_allow_html=True)
 
-        pode_sortear = (
-                ADMIN_PASSWORD is not None
-                and senha == ADMIN_PASSWORD
+    # =========================
+    # SORTEIO (PROTEGIDO)
+    # =========================
+    pode_sortear = (
+        ADMIN_PASSWORD is not None
+        and senha == ADMIN_PASSWORD
+    )
+
+    if not pode_sortear:
+        st.button(
+            "🎲 INICIAR SORTEIO FATAL 🔒",
+            type="primary",
+            use_container_width=True,
+            disabled=True,
+            key="sortear_disabled"
         )
+        st.caption("🔒 Apenas administradores podem realizar o sorteio.")
+    else:
+        if st.button(
+            "🎲 INICIAR SORTEIO FATAL",
+            type="primary",
+            use_container_width=True,
+            key="sortear"
+        ):
+            placeholder = st.empty()
 
-        if not pode_sortear:
-            st.button(
-                "🎲 INICIAR SORTEIO FATAL 🔒",
-                type="primary",
-                use_container_width=True,
-                disabled=True
+            roleta = random.sample(
+                st.session_state.movie_list,
+                k=len(st.session_state.movie_list)
             )
-            st.caption("🔒 Apenas administradores podem realizar o sorteio.")
-        else:
-            if st.button(
-                    "🎲 INICIAR SORTEIO FATAL",
-                    type="primary",
-                    use_container_width=True
-            ):
-                placeholder = st.empty()
 
-                roleta = random.sample(
-                    st.session_state.movie_list,
-                    k=len(st.session_state.movie_list)
+            for escolha in roleta:
+                placeholder.markdown(
+                    f"<div class='roleta-texto'>{escolha['titulo']}</div>",
+                    unsafe_allow_html=True
                 )
+                time.sleep(0.08)
 
-                for escolha in roleta:
-                    placeholder.markdown(
-                        f"<div class='roleta-texto'>{escolha['titulo']}</div>",
-                        unsafe_allow_html=True
-                    )
-                    time.sleep(0.08)
+            vencedor = random.choice(st.session_state.movie_list)
+            placeholder.empty()
 
-                vencedor = random.choice(st.session_state.movie_list)
-                placeholder.empty()
-
-                st.balloons()
-                st.markdown(
-                    f"""
+            st.balloons()
+            st.markdown(f"""
                 <div class='vencedor-box'>
                     <p>O FILME DA SEMANA É:</p>
                     <h1>{vencedor['titulo']}</h1>
                     <p>🎬 Direção: {vencedor['diretor']}</p>
                     <p>👤 Sugestão de: <b>{vencedor['pessoa']}</b></p>
                 </div>
-            """, unsafe_allow_html=True
-                    )
+            """, unsafe_allow_html=True)
 
-                salvar_filme_sorteado(
-                    titulo=vencedor["titulo"],
-                    diretor=vencedor["diretor"],
-                    pessoa=vencedor["pessoa"],
-                    poster=vencedor["poster"],
-                    data_lancamento=vencedor.get("data_lancamento")
-                )
+            salvar_filme_sorteado(
+                titulo=vencedor["titulo"],
+                diretor=vencedor["diretor"],
+                pessoa=vencedor["pessoa"],
+                poster=vencedor["poster"],
+                data_lancamento=vencedor.get("data_lancamento")
+            )
 
-                remover_filme(vencedor["id"])
-                st.session_state.movie_list = carregar_filmes()
+            remover_filme(vencedor["id"])
+            st.session_state.movie_list = carregar_filmes()
+            st.rerun()
 
 else:
     st.info("A lista está vazia. Adicione filmes para começar.")
-
