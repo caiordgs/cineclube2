@@ -11,6 +11,15 @@ from db import (
     limpar_todos,
     salvar_filme_sorteado
 )
+from datetime import date, datetime
+
+def normalizar_data(valor):
+    if valor is None:
+        return None
+    if isinstance(valor, (datetime, date)):
+        return valor.isoformat()
+    return valor
+
 
 # =========================
 # CONFIGURAÇÕES
@@ -24,6 +33,9 @@ ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD")
 # =========================
 if "movie_list" not in st.session_state:
     st.session_state.movie_list = carregar_filmes()
+
+if "filme_sorteado" not in st.session_state:
+    st.session_state["filme_sorteado"] = None
 
 # =========================
 # CSS
@@ -177,10 +189,10 @@ if st.session_state.movie_list:
         st.caption("🔒 Apenas administradores podem realizar o sorteio.")
     else:
         if st.button(
-            "🎲 INICIAR SORTEIO!",
-            type="primary",
-            use_container_width=True,
-            key="sortear"
+                "🎲 INICIAR SORTEIO!",
+                type="primary",
+                use_container_width=True,
+                key="sortear"
         ):
             placeholder = st.empty()
 
@@ -199,26 +211,50 @@ if st.session_state.movie_list:
             vencedor = random.choice(st.session_state.movie_list)
             placeholder.empty()
 
-            st.markdown(f"""
-                <div class='vencedor-box'>
-                    <p>O FILME DA SEMANA É:</p>
-                    <h1>{vencedor['titulo']}</h1>
-                    <p>🎬 Direção: {vencedor['diretor']}</p>
-                    <p>👤 Sugestão de: <b>{vencedor['pessoa']}</b></p>
-                </div>
-            """, unsafe_allow_html=True)
+            # guarda no estado
+            st.session_state["filme_sorteado"] = vencedor
 
-            salvar_filme_sorteado(
-                titulo=vencedor["titulo"],
-                diretor=vencedor["diretor"],
-                pessoa=vencedor["pessoa"],
-                poster=vencedor["poster"],
-                data_lancamento=vencedor.get("data_lancamento")
+            filme = st.session_state["filme_sorteado"]
+
+            data_lancamento = normalizar_data(
+                filme.get("data_lancamento")
             )
 
-            remover_filme(vencedor["id"])
+            salvar_filme_sorteado(
+                titulo=filme["titulo"],
+                diretor=filme["diretor"],
+                pessoa=filme["pessoa"],
+                poster=filme["poster"],
+                data_lancamento=data_lancamento
+            )
+
+            remover_filme(filme["id"])
             st.session_state.movie_list = carregar_filmes()
             st.rerun()
+        # =========================
+        # FILME SORTEADO (PERSISTENTE)
+        # =========================
+        filme = st.session_state.get("filme_sorteado")
+        if filme:
+            st.markdown("## 🎬 Filme sorteado da semana")
+            col1, col2 = st.columns([2, 3])
+            with col1:
+                if filme.get("poster"):
+                    st.image(
+                        filme["poster"],
+                        use_container_width=True
+                    )
+            with col2:
+                st.markdown(
+                    f"""
+                    <div class='vencedor-box'>
+                        <h2 style="margin-bottom:10px">{filme['titulo']}</h2>
+                        <p>🎬 <b>Direção:</b> {filme['diretor']}</p>
+                        <p>👤 <b>Sugestão de:</b> {filme['pessoa']}</p>
+                    </div>
+                    """,
+                    unsafe_allow_html=True
+                )
 
 else:
     st.info("A lista está vazia. Adicione filmes para começar.")

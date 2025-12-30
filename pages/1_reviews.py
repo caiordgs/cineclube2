@@ -65,7 +65,7 @@ with c2:
     st.subheader(filme["titulo"])
     st.write(f"🎬 Diretor: **{filme['diretor']}**")
     st.write(f"👤 Indicado por: **{filme['pessoa']}**")
-    st.write(f"📅 Sorteado em: {filme['data_sorteio_br'][:10]}")
+    st.write(f"📅 Sorteado em: {filme['data_sorteio'][:10]}")
 
 st.divider()
 

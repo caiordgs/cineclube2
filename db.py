@@ -53,14 +53,16 @@ def salvar_filme_sorteado(
     poster,
     data_lancamento
 ):
-    return supabase.table("filmes_sorteados").insert({
-        "titulo": titulo,
-        "diretor": diretor,
-        "pessoa": pessoa,
-        "poster": poster,
-        "data_lancamento": data_lancamento,
-        "data_sorteio": datetime.now(timezone.utc)  # ✅ UTC explícito
-    }).execute()
+    supabase.table("filmes_sorteados").insert(
+        {
+            "titulo":          titulo,
+            "diretor":         diretor,
+            "pessoa":          pessoa,
+            "poster":          poster,
+            "data_lancamento": data_lancamento,
+            "data_sorteio":    datetime.now(timezone.utc).isoformat()
+        }
+    ).execute()
 
 
 def carregar_filmes_sorteados():
