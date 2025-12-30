@@ -17,7 +17,12 @@ st.title("⭐ Reviews dos Filmes Sorteados")
 # SELEÇÃO DO FILME
 # =========================
 filmes = carregar_filmes_sorteados()
+if not filmes:
+    st.info("Nenhum filme sorteado ainda.")
+    st.stop()
+
 filme_da_semana = filmes[0]
+
 
 
 if not filmes:
