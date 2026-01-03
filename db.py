@@ -1,6 +1,6 @@
 import os
 from supabase import create_client
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 
 
 SUPABASE_URL = os.getenv("SUPABASE_URL")
@@ -24,13 +24,15 @@ def carregar_filmes():
 
 
 def salvar_filme(titulo, diretor, pessoa, poster, data_lancamento):
+    if isinstance(data_lancamento, (datetime, date)):
+        data_lancamento = data_lancamento.isoformat()
+
     supabase.table("sugestoes_filmes").insert({
         "titulo": titulo.strip(),
         "diretor": diretor or "Desconhecido",
         "pessoa": pessoa.strip(),
         "poster": poster,
-        "data_lancamento": data_lancamento,
-        "created_at": datetime.now(timezone.utc)
+        "data_lancamento": data_lancamento
     }).execute()
 
 def remover_filme(id_filme):
