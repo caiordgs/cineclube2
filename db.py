@@ -1,6 +1,5 @@
 import os
 from supabase import create_client
-from config.env import ENV, SUPABASE_URL, SUPABASE_KEY
 from datetime import date, datetime, timezone
 
 
@@ -9,13 +8,11 @@ SUPABASE_KEY = os.getenv("SUPABASE_KEY")
 
 if not SUPABASE_URL or not SUPABASE_KEY:
     raise RuntimeError(
-        "SUPABASE_URL / SUPABASE_KEY não carregadas. Verifique o ambiente."
+        "Variáveis de ambiente SUPABASE_URL e SUPABASE_KEY não configuradas"
     )
 
 supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
-print(">>> AMBIENTE ATIVO:", ENV)
-print(">>> SUPABASE_URL:", SUPABASE_URL)
 
 def carregar_filmes():
     resp = supabase.table("sugestoes_filmes") \
