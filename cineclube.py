@@ -3,6 +3,7 @@ import random
 import time
 import os
 
+from config.env import ENV
 from tmdb import buscar_filmes, buscar_diretor, poster_url
 from db import (
     carregar_filmes,
@@ -19,6 +20,11 @@ def normalizar_data(valor):
     if isinstance(valor, (datetime, date)):
         return valor.isoformat()
     return valor
+
+if ENV == "homologation":
+    st.sidebar.warning("🧪 AMBIENTE: HOMOLOGAÇÃO")
+else:
+    st.sidebar.success("🚀 AMBIENTE: PRODUÇÃO")
 
 
 # =========================
