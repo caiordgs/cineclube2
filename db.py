@@ -123,4 +123,16 @@ def review_ja_existe(filme_sorteado_id, autor):
 
     return bool(resp.data)
 
+def filme_ja_existe(titulo, diretor):
+    resp = (
+        supabase
+        .table("sugestoes_filmes")
+        .select("id")
+        .eq("titulo", titulo)
+        .eq("diretor", diretor)
+        .execute()
+    )
+    return bool(resp.data)
+
+
 
