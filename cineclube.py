@@ -24,7 +24,7 @@ def normalizar_data(valor):
 if ENV == "homologation":
     st.sidebar.warning("🧪 AMBIENTE: HOMOLOGAÇÃO")
 else:
-    st.sidebar.success("🚀 AMBIENTE: PRODUÇÃO")
+    st.sidebar.success("1.1")
 
 
 # =========================
