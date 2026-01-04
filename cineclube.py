@@ -10,7 +10,8 @@ from db import (
     salvar_filme,
     remover_filme,
     limpar_todos,
-    salvar_filme_sorteado
+    salvar_filme_sorteado,
+    filme_ja_existe
 )
 from datetime import date, datetime
 
@@ -143,6 +144,11 @@ with st.expander("➕ Adicionar novo filme"):
                 st.warning("Informe quem está indicando o filme.")
             elif not filme_escolhido:
                 st.warning("Selecione um filme da lista.")
+            elif filme_ja_existe(
+                    filme_escolhido["title"],
+                    diretor
+            ):
+                st.warning("🎬 Esse filme já consta na lista.")
             else:
                 salvar_filme(
                     filme_escolhido["title"],
@@ -162,19 +168,35 @@ if st.session_state.movie_list:
     st.subheader(f"🍿 Filmes na disputa ({len(st.session_state.movie_list)})")
 
     for f in st.session_state.movie_list:
-        c1, c2 = st.columns([1, 4])
+        col_img, col_info, col_admin = st.columns([1, 4, 1])
 
-        with c1:
+        with col_img:
             if f.get("poster"):
                 st.image(f["poster"], width=100)
 
-        with c2:
-            st.markdown(f"""
+        with col_info:
+            st.markdown(
+                f"""
                 <div class='filme-card'>
                     <b>{f['titulo']}</b><br>
-                    <small>Direção: {f['diretor']} | Indicado por: {f['pessoa']}</small>
+                    <small>
+                        Direção: {f['diretor']} |
+                        Indicado por: {f['pessoa']}
+                    </small>
                 </div>
-            """, unsafe_allow_html=True)
+            """, unsafe_allow_html=True
+                )
+
+        with col_admin:
+            if senha == ADMIN_PASSWORD:
+                if st.button(
+                        "🗑️",
+                        key=f"delete_{f['id']}",
+                        help="Remover este filme"
+                ):
+                    remover_filme(f["id"])
+                    st.session_state.movie_list = carregar_filmes()
+                    st.rerun()
 
     # =========================
     # SORTEIO (PROTEGIDO)
