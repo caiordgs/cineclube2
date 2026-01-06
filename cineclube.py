@@ -15,6 +15,7 @@ from db import (
     carregar_filme_da_semana,
     filme_e_novo
 )
+from utils import calcular_dias_restantes, formatar_tempo_restante, formatar_data_br
 from datetime import date, datetime
 
 
@@ -115,6 +116,11 @@ filme = st.session_state.get("filme_sorteado")
 if filme:
     st.markdown("---")
     st.markdown("## 🏆 Filme da Semana")
+
+    # Calcula tempo restante
+    info_prazo = calcular_dias_restantes(filme.get("data_sorteio"), dias_limite=7)
+    tempo_restante = formatar_tempo_restante(info_prazo)
+
     col1, col2 = st.columns([2, 3])
     with col1:
         if filme.get("poster"):
@@ -126,10 +132,19 @@ if filme:
                 <h2 style="margin-bottom:10px">{filme['titulo']}</h2>
                 <p>🎬 <b>Direção:</b> {filme['diretor']}</p>
                 <p>👤 <b>Sugestão de:</b> {filme['pessoa']}</p>
+                <p>📅 <b>Sorteado em:</b> {formatar_data_br(filme.get('data_sorteio'))}</p>
             </div>
             """,
             unsafe_allow_html=True
         )
+
+        # Timer do prazo
+        if info_prazo:
+            if info_prazo["expirado"]:
+                st.warning(tempo_restante)
+            else:
+                st.info(tempo_restante)
+
     st.markdown("---")
 else:
     st.info("⏳ Ainda não há filme da semana sorteado. Aguarde o próximo sorteio!")
