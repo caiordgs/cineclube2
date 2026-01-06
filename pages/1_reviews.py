@@ -1,9 +1,10 @@
 import streamlit as st
 
 from db import (
-	carregar_filmes_sorteados,
-	salvar_review,
-	carregar_reviews, review_ja_existe
+    carregar_filmes_sorteados,
+    salvar_review,
+    carregar_reviews,
+    review_ja_existe
 )
 
 st.set_page_config(
@@ -23,13 +24,6 @@ if not filmes:
     st.stop()
 
 filme_da_semana = filmes[0]
-
-
-
-
-if not filmes:
-    st.info("Nenhum filme sorteado ainda.")
-    st.stop()
 
 opcoes = {
     f"{f['titulo']} ({f.get('data_lancamento', '')})": f
@@ -72,7 +66,7 @@ st.divider()
 # =========================
 # FORMULÁRIO DE REVIEW
 # =========================
-st.subheader("✍️ Deixe sua review")
+st.subheader("✏️ Deixe sua review")
 
 with st.form("form_review", clear_on_submit=True):
     autor = st.text_input("Seu nome")
@@ -90,7 +84,11 @@ with st.form("form_review", clear_on_submit=True):
 
     enviado = st.form_submit_button("Salvar review ⭐")
 
-    if review_ja_existe(filme["id"], autor):
+
+if enviado:
+    if not autor:
+        st.warning("Informe seu nome.")
+    elif review_ja_existe(filme["id"], autor):
         st.warning("Você já avaliou este filme.")
     else:
         salvar_review(
@@ -102,21 +100,6 @@ with st.form("form_review", clear_on_submit=True):
         )
         st.success("Review salva com sucesso!")
         st.rerun()
-
-    if enviado:
-        if not autor:
-            st.warning("Informe seu nome.")
-        else:
-            salvar_review(
-                filme_sorteado_id=filme["id"],
-                autor=autor,
-                comentario=comentario,
-                nota=nota,
-                diretor=filme["diretor"]
-            )
-
-            st.success("Review salva com sucesso!")
-            st.rerun()
 
 # =========================
 # LISTAGEM DE REVIEWS
