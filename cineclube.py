@@ -99,6 +99,34 @@ st.markdown(
     color: #FF4B4B;
     text-align: center;
     margin: 20px 0;
+    animation: pulse 0.3s ease-in-out;
+}
+@keyframes pulse {
+    0% { transform: scale(0.8); opacity: 0; }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); opacity: 1; }
+}
+.vencedor-revelacao {
+    font-size: 3em;
+    font-weight: bold;
+    color: #FFD700;
+    text-align: center;
+    margin: 40px 0;
+    animation: revelar 1s ease-out;
+    text-shadow: 0 0 20px #FFD700, 0 0 40px #FF4B4B;
+}
+@keyframes revelar {
+    0% { 
+        transform: scale(0) rotate(-180deg); 
+        opacity: 0; 
+    }
+    50% { 
+        transform: scale(1.2) rotate(10deg); 
+    }
+    100% { 
+        transform: scale(1) rotate(0deg); 
+        opacity: 1; 
+    }
 }
 </style>
 """, unsafe_allow_html=True
@@ -308,20 +336,84 @@ if st.session_state.movie_list:
 
             placeholder = st.empty()
 
+            # Embaralha a lista para o efeito de roleta
             roleta = random.sample(
                 st.session_state.movie_list,
                 k=len(st.session_state.movie_list)
             )
 
-            for escolha in roleta:
+            # Escolhe o vencedor antecipadamente
+            vencedor = random.choice(st.session_state.movie_list)
+
+            # Adiciona o vencedor no final algumas vezes para "parar" nele
+            roleta = roleta + [vencedor] * 3
+
+            # Efeito de desaceleração progressiva
+            velocidades = []
+
+            # Fase 1: rápido (primeiros 60%)
+            num_rapido = int(len(roleta) * 0.6)
+            velocidades.extend([0.05] * num_rapido)
+
+            # Fase 2: desacelerando (próximos 30%)
+            num_medio = int(len(roleta) * 0.3)
+            for i in range(num_medio):
+                velocidades.append(0.05 + (i * 0.02))
+
+            # Fase 3: muito lento (últimos 10%)
+            num_lento = len(roleta) - num_rapido - num_medio
+            velocidades.extend([0.3] * num_lento)
+
+            # Roda a roleta com velocidade variável
+            for i, escolha in enumerate(roleta):
                 placeholder.markdown(
                     f"<div class='roleta-texto'>{escolha['titulo']}</div>",
                     unsafe_allow_html=True
                 )
-                time.sleep(0.08)
+                time.sleep(velocidades[i] if i < len(velocidades) else 0.3)
 
-            vencedor = random.choice(st.session_state.movie_list)
             placeholder.empty()
+
+            # Revelação dramática do vencedor
+            placeholder.markdown(
+                f"<div class='vencedor-revelacao'>🎉 {vencedor['titulo']} 🎉</div>",
+                unsafe_allow_html=True
+            )
+
+            # Confetti!
+            st.markdown(
+                """
+                <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+                <script>
+                    // Confetti animation
+                    var duration = 3 * 1000;
+                    var end = Date.now() + duration;
+
+                    (function frame() {
+                        confetti({
+                            particleCount: 7,
+                            angle: 60,
+                            spread: 55,
+                            origin: { x: 0 },
+                            colors: ['#FF4B4B', '#FFD700', '#00FF00', '#00BFFF']
+                        });
+                        confetti({
+                            particleCount: 7,
+                            angle: 120,
+                            spread: 55,
+                            origin: { x: 1 },
+                            colors: ['#FF4B4B', '#FFD700', '#00FF00', '#00BFFF']
+                        });
+
+                        if (Date.now() < end) {
+                            requestAnimationFrame(frame);
+                        }
+                    }());
+                </script>
+            """, unsafe_allow_html=True
+                )
+
+            time.sleep(3)  # Deixa o vencedor visível com confetti
 
             # Salva o vencedor com loading
             with st.spinner("Salvando resultado..."):
