@@ -1,2 +1,4 @@
 .env.hml
 .env.prod
+__pycache__/
+*.pyc
