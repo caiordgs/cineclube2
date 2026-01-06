@@ -99,23 +99,6 @@ st.markdown(
     text-align: center;
     margin: 20px 0;
 }
-.contador-destaque {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    padding: 20px;
-    border-radius: 15px;
-    text-align: center;
-    margin-bottom: 20px;
-}
-.contador-destaque h2 {
-    color: white;
-    margin: 0;
-    font-size: 2.5em;
-}
-.contador-destaque p {
-    color: #E0E0E0;
-    margin: 5px 0 0 0;
-    font-size: 1.1em;
-}
 </style>
 """, unsafe_allow_html=True
     )
@@ -238,17 +221,7 @@ with st.expander("➕ Adicionar novo filme"):
 # LISTA DE FILMES
 # =========================
 if st.session_state.movie_list:
-    # Contador destacado
-    total_filmes = len(st.session_state.movie_list)
-    st.markdown(
-        f"""
-        <div class='contador-destaque'>
-            <h2>{total_filmes}</h2>
-            <p>{'filme' if total_filmes == 1 else 'filmes'} na disputa</p>
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
+    st.subheader(f"🍿 Filmes na disputa ({len(st.session_state.movie_list)})")
 
     for f in st.session_state.movie_list:
         col_img, col_info, col_admin = st.columns([1, 4, 1])
