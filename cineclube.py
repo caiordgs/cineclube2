@@ -11,7 +11,9 @@ from db import (
     remover_filme,
     limpar_todos,
     salvar_filme_sorteado,
-    filme_ja_existe
+    filme_ja_existe,
+    carregar_filme_da_semana,
+    filme_e_novo
 )
 from datetime import date, datetime
 
@@ -27,7 +29,7 @@ def normalizar_data(valor):
 if ENV == "homologation":
     st.sidebar.warning("🧪 AMBIENTE: HOMOLOGAÇÃO")
 else:
-    st.sidebar.success("1.1")
+    st.sidebar.success("1.2")
 
 # =========================
 # CONFIGURAÇÕES
@@ -44,7 +46,9 @@ if "movie_list" not in st.session_state:
         st.session_state.movie_list = carregar_filmes()
 
 if "filme_sorteado" not in st.session_state:
-    st.session_state["filme_sorteado"] = None
+    # Busca o filme da semana do banco
+    filme_da_semana = carregar_filme_da_semana()
+    st.session_state["filme_sorteado"] = filme_da_semana
 
 # =========================
 # CSS
@@ -59,10 +63,22 @@ st.markdown(
     border-radius: 10px;
     margin-bottom: 10px;
     border-left: 6px solid #E50914;
+    position: relative;
 }
 .filme-card b {
     color: #FF4B4B;
     font-size: 1.1em;
+}
+.badge-novo {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background-color: #00FF00;
+    color: #000;
+    padding: 3px 8px;
+    border-radius: 5px;
+    font-size: 0.7em;
+    font-weight: bold;
 }
 .vencedor-box {
     padding: 30px;
@@ -83,6 +99,23 @@ st.markdown(
     text-align: center;
     margin: 20px 0;
 }
+.contador-destaque {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 20px;
+    border-radius: 15px;
+    text-align: center;
+    margin-bottom: 20px;
+}
+.contador-destaque h2 {
+    color: white;
+    margin: 0;
+    font-size: 2.5em;
+}
+.contador-destaque p {
+    color: #E0E0E0;
+    margin: 5px 0 0 0;
+    font-size: 1.1em;
+}
 </style>
 """, unsafe_allow_html=True
     )
@@ -91,6 +124,33 @@ st.markdown(
 # TÍTULO
 # =========================
 st.title("🎬 Cine Clube")
+
+# =========================
+# FILME DA SEMANA (DESTAQUE NO TOPO)
+# =========================
+filme = st.session_state.get("filme_sorteado")
+if filme:
+    st.markdown("---")
+    st.markdown("## 🏆 Filme da Semana")
+    col1, col2 = st.columns([2, 3])
+    with col1:
+        if filme.get("poster"):
+            st.image(filme["poster"], use_container_width=True)
+    with col2:
+        st.markdown(
+            f"""
+            <div class='vencedor-box'>
+                <h2 style="margin-bottom:10px">{filme['titulo']}</h2>
+                <p>🎬 <b>Direção:</b> {filme['diretor']}</p>
+                <p>👤 <b>Sugestão de:</b> {filme['pessoa']}</p>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+    st.markdown("---")
+else:
+    st.info("⏳ Ainda não há filme da semana sorteado. Aguarde o próximo sorteio!")
+    st.markdown("---")
 
 # =========================
 # ADMIN (SIDEBAR)
@@ -178,7 +238,17 @@ with st.expander("➕ Adicionar novo filme"):
 # LISTA DE FILMES
 # =========================
 if st.session_state.movie_list:
-    st.subheader(f"🍿 Filmes na disputa ({len(st.session_state.movie_list)})")
+    # Contador destacado
+    total_filmes = len(st.session_state.movie_list)
+    st.markdown(
+        f"""
+        <div class='contador-destaque'>
+            <h2>{total_filmes}</h2>
+            <p>{'filme' if total_filmes == 1 else 'filmes'} na disputa</p>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
 
     for f in st.session_state.movie_list:
         col_img, col_info, col_admin = st.columns([1, 4, 1])
@@ -188,9 +258,15 @@ if st.session_state.movie_list:
                 st.image(f["poster"], width=100)
 
         with col_info:
+            # Verifica se é novo
+            badge_html = ""
+            if filme_e_novo(f.get("created_at")):
+                badge_html = "<span class='badge-novo'>NOVO</span>"
+
             st.markdown(
                 f"""
                 <div class='filme-card'>
+                    {badge_html}
                     <b>{f['titulo']}</b><br>
                     <small>
                         Direção: {f['diretor']} |
@@ -263,51 +339,26 @@ if st.session_state.movie_list:
             with st.spinner("Salvando resultado..."):
                 st.session_state["filme_sorteado"] = vencedor
 
-                filme = st.session_state["filme_sorteado"]
+                filme_vencedor = st.session_state["filme_sorteado"]
 
                 data_lancamento = normalizar_data(
-                    filme.get("data_lancamento")
+                    filme_vencedor.get("data_lancamento")
                 )
 
                 salvar_filme_sorteado(
-                    titulo=filme["titulo"],
-                    diretor=filme["diretor"],
-                    pessoa=filme["pessoa"],
-                    poster=filme["poster"],
+                    titulo=filme_vencedor["titulo"],
+                    diretor=filme_vencedor["diretor"],
+                    pessoa=filme_vencedor["pessoa"],
+                    poster=filme_vencedor["poster"],
                     data_lancamento=data_lancamento
                 )
 
-                remover_filme(filme["id"])
+                remover_filme(filme_vencedor["id"])
                 st.session_state.movie_list = carregar_filmes()
 
             st.success("Sorteio realizado com sucesso!")
             time.sleep(1)
             st.rerun()
-
-        # =========================
-        # FILME SORTEADO (PERSISTENTE)
-        # =========================
-        filme = st.session_state.get("filme_sorteado")
-        if filme:
-            st.markdown("## 🎬 Filme sorteado da semana")
-            col1, col2 = st.columns([2, 3])
-            with col1:
-                if filme.get("poster"):
-                    st.image(
-                        filme["poster"],
-                        use_container_width=True
-                    )
-            with col2:
-                st.markdown(
-                    f"""
-                    <div class='vencedor-box'>
-                        <h2 style="margin-bottom:10px">{filme['titulo']}</h2>
-                        <p>🎬 <b>Direção:</b> {filme['diretor']}</p>
-                        <p>👤 <b>Sugestão de:</b> {filme['pessoa']}</p>
-                    </div>
-                    """,
-                    unsafe_allow_html=True
-                )
 
 else:
     st.info("A lista está vazia. Adicione filmes para começar.")

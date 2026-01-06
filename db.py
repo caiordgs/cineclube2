@@ -3,7 +3,6 @@ from supabase import create_client
 from config.env import ENV, SUPABASE_URL, SUPABASE_KEY
 from datetime import date, datetime, timezone
 
-
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SUPABASE_KEY")
 
@@ -16,6 +15,7 @@ supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 print(">>> AMBIENTE ATIVO:", ENV)
 print(">>> SUPABASE_URL:", SUPABASE_URL)
+
 
 def carregar_filmes():
     resp = supabase.table("sugestoes_filmes") \
@@ -30,13 +30,16 @@ def salvar_filme(titulo, diretor, pessoa, poster, data_lancamento):
     if isinstance(data_lancamento, (datetime, date)):
         data_lancamento = data_lancamento.isoformat()
 
-    supabase.table("sugestoes_filmes").insert({
-        "titulo": titulo.strip(),
-        "diretor": diretor or "Desconhecido",
-        "pessoa": pessoa.strip(),
-        "poster": poster,
-        "data_lancamento": data_lancamento
-    }).execute()
+    supabase.table("sugestoes_filmes").insert(
+        {
+            "titulo":          titulo.strip(),
+            "diretor":         diretor or "Desconhecido",
+            "pessoa":          pessoa.strip(),
+            "poster":          poster,
+            "data_lancamento": data_lancamento
+        }
+    ).execute()
+
 
 def remover_filme(id_filme):
     supabase.table("sugestoes_filmes") \
@@ -51,12 +54,13 @@ def limpar_todos():
         .gte("created_at", "1970-01-01") \
         .execute()
 
+
 def salvar_filme_sorteado(
-    titulo,
-    diretor,
-    pessoa,
-    poster,
-    data_lancamento
+        titulo,
+        diretor,
+        pessoa,
+        poster,
+        data_lancamento
 ):
     supabase.table("filmes_sorteados").insert(
         {
@@ -80,29 +84,32 @@ def carregar_filmes_sorteados():
 
 
 def salvar_review(
-    filme_sorteado_id,
-    autor,
-    comentario,
-    nota,
-    diretor
+        filme_sorteado_id,
+        autor,
+        comentario,
+        nota,
+        diretor
 ):
-    supabase.table("reviews_filmes").insert({
-        "filme_sorteado_id": filme_sorteado_id,
-        "autor": autor,
-        "comentario": comentario,
-        "nota": nota,
-        "diretor": diretor
-    }).execute()
+    supabase.table("reviews_filmes").insert(
+        {
+            "filme_sorteado_id": filme_sorteado_id,
+            "autor":             autor,
+            "comentario":        comentario,
+            "nota":              nota,
+            "diretor":           diretor
+        }
+    ).execute()
 
 
 def carregar_reviews(filme_sorteado_id):
-        resp = supabase.table("reviews_filmes") \
-            .select("*") \
-            .eq("filme_sorteado_id", filme_sorteado_id) \
-            .order("created_at", desc=True) \
-            .execute()
+    resp = supabase.table("reviews_filmes") \
+        .select("*") \
+        .eq("filme_sorteado_id", filme_sorteado_id) \
+        .order("created_at", desc=True) \
+        .execute()
 
-        return resp.data or []
+    return resp.data or []
+
 
 def carregar_filme_da_semana():
     resp = supabase.table("filmes_sorteados") \
@@ -114,6 +121,7 @@ def carregar_filme_da_semana():
     data = resp.data or []
     return data[0] if data else None
 
+
 def review_ja_existe(filme_sorteado_id, autor):
     resp = supabase.table("reviews_filmes") \
         .select("id") \
@@ -122,6 +130,7 @@ def review_ja_existe(filme_sorteado_id, autor):
         .execute()
 
     return bool(resp.data)
+
 
 def filme_ja_existe(titulo, diretor):
     resp = (
@@ -135,4 +144,16 @@ def filme_ja_existe(titulo, diretor):
     return bool(resp.data)
 
 
+def filme_e_novo(created_at):
+    """Verifica se o filme foi adicionado nas últimas 48h"""
+    if not created_at:
+        return False
 
+    # Converte string ISO para datetime se necessário
+    if isinstance(created_at, str):
+        created_at = datetime.fromisoformat(created_at.replace('Z', '+00:00'))
+
+    agora = datetime.now(timezone.utc)
+    diferenca = agora - created_at
+
+    return diferenca.total_seconds() < (48 * 3600)  # 48 horas em segundos
