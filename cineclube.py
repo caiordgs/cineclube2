@@ -15,6 +15,7 @@ from db import (
 )
 from datetime import date, datetime
 
+
 def normalizar_data(valor):
     if valor is None:
         return None
@@ -22,11 +23,11 @@ def normalizar_data(valor):
         return valor.isoformat()
     return valor
 
+
 if ENV == "homologation":
     st.sidebar.warning("🧪 AMBIENTE: HOMOLOGAÇÃO")
 else:
-    st.sidebar.success("🚀 AMBIENTE: PRODUÇÃO")
-
+    st.sidebar.success("1.1")
 
 # =========================
 # CONFIGURAÇÕES
@@ -39,7 +40,8 @@ ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD")
 # ESTADO
 # =========================
 if "movie_list" not in st.session_state:
-    st.session_state.movie_list = carregar_filmes()
+    with st.spinner("Carregando filmes..."):
+        st.session_state.movie_list = carregar_filmes()
 
 if "filme_sorteado" not in st.session_state:
     st.session_state["filme_sorteado"] = None
@@ -47,7 +49,8 @@ if "filme_sorteado" not in st.session_state:
 # =========================
 # CSS
 # =========================
-st.markdown("""
+st.markdown(
+    """
 <style>
 .filme-card {
     padding: 15px;
@@ -81,7 +84,8 @@ st.markdown("""
     margin: 20px 0;
 }
 </style>
-""", unsafe_allow_html=True)
+""", unsafe_allow_html=True
+    )
 
 # =========================
 # TÍTULO
@@ -98,15 +102,17 @@ if ADMIN_PASSWORD is None:
     st.sidebar.warning("Senha de admin não configurada")
 elif senha == ADMIN_PASSWORD:
     if st.sidebar.button("Limpar lista"):
-        limpar_todos()
-        st.session_state.movie_list = carregar_filmes()
+        with st.spinner("Limpando lista..."):
+            limpar_todos()
+            st.session_state.movie_list = carregar_filmes()
+        st.success("Lista limpa com sucesso!")
+        time.sleep(1)
         st.rerun()
 
 # =========================
 # CADASTRO DE FILMES
 # =========================
 with st.expander("➕ Adicionar novo filme"):
-
     busca = st.text_input(
         "🎥 Digite o título do filme (ou parte dele) e pressione Enter"
     )
@@ -116,24 +122,29 @@ with st.expander("➕ Adicionar novo filme"):
     poster = None
 
     if len(busca) >= 3:
-        resultados = buscar_filmes(busca)
+        with st.spinner("Buscando filmes..."):
+            resultados = buscar_filmes(busca)
 
         if resultados:
             opcoes = {
-                f"{f['title']} ({f.get('release_date','')[:4]})": f
+                f"{f['title']} ({f.get('release_date', '')[:4]})": f
                 for f in resultados[:5]
             }
 
             escolha = st.selectbox("Resultado", list(opcoes.keys()))
             filme_escolhido = opcoes[escolha]
 
-            diretor = buscar_diretor(filme_escolhido["id"])
+            with st.spinner("Buscando informações do diretor..."):
+                diretor = buscar_diretor(filme_escolhido["id"])
+
             poster = poster_url(filme_escolhido.get("poster_path"))
 
             if poster:
                 st.image(poster, width=200)
 
             st.write(f"🎬 Diretor: **{diretor}**")
+        else:
+            st.info("Nenhum filme encontrado. Tente outro termo de busca.")
 
     with st.form("form_adicionar_filme", clear_on_submit=True):
         pessoa = st.text_input("👤 Quem está indicando?")
@@ -150,15 +161,17 @@ with st.expander("➕ Adicionar novo filme"):
             ):
                 st.warning("🎬 Esse filme já consta na lista.")
             else:
-                salvar_filme(
-                    filme_escolhido["title"],
-                    diretor,
-                    pessoa,
-                    poster,
-                    filme_escolhido.get("release_date")
-                )
-                st.session_state.movie_list = carregar_filmes()
-                st.success("🎬 Filme adicionado com sucesso!")
+                with st.spinner("Salvando filme..."):
+                    salvar_filme(
+                        filme_escolhido["title"],
+                        diretor,
+                        pessoa,
+                        poster,
+                        filme_escolhido.get("release_date")
+                    )
+                    st.session_state.movie_list = carregar_filmes()
+                st.success("Filme adicionado com sucesso!")
+                time.sleep(1)
                 st.rerun()
 
 # =========================
@@ -185,7 +198,7 @@ if st.session_state.movie_list:
                     </small>
                 </div>
             """, unsafe_allow_html=True
-                )
+            )
 
         with col_admin:
             if senha == ADMIN_PASSWORD:
@@ -194,16 +207,19 @@ if st.session_state.movie_list:
                         key=f"delete_{f['id']}",
                         help="Remover este filme"
                 ):
-                    remover_filme(f["id"])
-                    st.session_state.movie_list = carregar_filmes()
+                    with st.spinner("Removendo filme..."):
+                        remover_filme(f["id"])
+                        st.session_state.movie_list = carregar_filmes()
+                    st.success("Filme removido!")
+                    time.sleep(0.5)
                     st.rerun()
 
     # =========================
     # SORTEIO (PROTEGIDO)
     # =========================
     pode_sortear = (
-        ADMIN_PASSWORD is not None
-        and senha == ADMIN_PASSWORD
+            ADMIN_PASSWORD is not None
+            and senha == ADMIN_PASSWORD
     )
 
     if not pode_sortear:
@@ -222,6 +238,10 @@ if st.session_state.movie_list:
                 use_container_width=True,
                 key="sortear"
         ):
+            # Loading antes do sorteio
+            with st.spinner("Preparando sorteio..."):
+                time.sleep(1)
+
             placeholder = st.empty()
 
             roleta = random.sample(
@@ -239,26 +259,31 @@ if st.session_state.movie_list:
             vencedor = random.choice(st.session_state.movie_list)
             placeholder.empty()
 
-            # guarda no estado
-            st.session_state["filme_sorteado"] = vencedor
+            # Salva o vencedor com loading
+            with st.spinner("Salvando resultado..."):
+                st.session_state["filme_sorteado"] = vencedor
 
-            filme = st.session_state["filme_sorteado"]
+                filme = st.session_state["filme_sorteado"]
 
-            data_lancamento = normalizar_data(
-                filme.get("data_lancamento")
-            )
+                data_lancamento = normalizar_data(
+                    filme.get("data_lancamento")
+                )
 
-            salvar_filme_sorteado(
-                titulo=filme["titulo"],
-                diretor=filme["diretor"],
-                pessoa=filme["pessoa"],
-                poster=filme["poster"],
-                data_lancamento=data_lancamento
-            )
+                salvar_filme_sorteado(
+                    titulo=filme["titulo"],
+                    diretor=filme["diretor"],
+                    pessoa=filme["pessoa"],
+                    poster=filme["poster"],
+                    data_lancamento=data_lancamento
+                )
 
-            remover_filme(filme["id"])
-            st.session_state.movie_list = carregar_filmes()
+                remover_filme(filme["id"])
+                st.session_state.movie_list = carregar_filmes()
+
+            st.success("Sorteio realizado com sucesso!")
+            time.sleep(1)
             st.rerun()
+
         # =========================
         # FILME SORTEADO (PERSISTENTE)
         # =========================
