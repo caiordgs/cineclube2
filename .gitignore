@@ -1,4 +1,5 @@
 .env.hml
 .env.prod
+.env.friends
 __pycache__/
 *.pyc
