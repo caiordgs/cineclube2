@@ -58,7 +58,8 @@ if "filme_sorteado" not in st.session_state:
 # =========================
 # CSS
 # =========================
-st.markdown("""
+st.markdown(
+    """
 <style>
 .filme-card {
     padding: 15px;
@@ -67,22 +68,10 @@ st.markdown("""
     border-radius: 10px;
     margin-bottom: 10px;
     border-left: 6px solid #E50914;
-    position: relative;
 }
 .filme-card b {
     color: #FF4B4B;
     font-size: 1.1em;
-}
-.badge-novo {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    background-color: #00FF00;
-    color: #000;
-    padding: 3px 8px;
-    border-radius: 5px;
-    font-size: 0.7em;
-    font-weight: bold;
 }
 .vencedor-box {
     padding: 30px;
@@ -102,58 +91,10 @@ st.markdown("""
     color: #FF4B4B;
     text-align: center;
     margin: 20px 0;
-    animation: pulse 0.3s ease-in-out;
-}
-@keyframes pulse {
-    0% { transform: scale(0.8); opacity: 0; }
-    50% { transform: scale(1.1); }
-    100% { transform: scale(1); opacity: 1; }
-}
-.vencedor-revelacao {
-    font-size: 3em;
-    font-weight: bold;
-    color: #FFD700;
-    text-align: center;
-    margin: 40px 0;
-    animation: revelar 1s ease-out;
-    text-shadow: 0 0 20px #FFD700, 0 0 40px #FF4B4B;
-}
-@keyframes revelar {
-    0% { 
-        transform: scale(0) rotate(-180deg); 
-        opacity: 0; 
-    }
-    50% { 
-        transform: scale(1.2) rotate(10deg); 
-    }
-    100% { 
-        transform: scale(1) rotate(0deg); 
-        opacity: 1; 
-    }
-}
-/* Remove padding padrão do Streamlit */
-.block-container {
-    padding-top: 1rem;
-    padding-bottom: 0rem;
-}
-header {
-    background-color: transparent !important;
-}
-footer {
-    visibility: hidden;
-}
-.main > div {
-    padding-top: 0rem;
-}
-.main .block-container {
-    max-width: 100%;
-    padding-top: 1rem;
-    padding-right: 1rem;
-    padding-left: 1rem;
-    padding-bottom: 1rem;
 }
 </style>
-""", unsafe_allow_html=True)
+""", unsafe_allow_html=True
+    )
 
 # =========================
 # TÍTULO
