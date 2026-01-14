@@ -58,8 +58,7 @@ if "filme_sorteado" not in st.session_state:
 # =========================
 # CSS
 # =========================
-st.markdown(
-    """
+st.markdown("""
 <style>
 .filme-card {
     padding: 15px;
@@ -131,23 +130,30 @@ st.markdown(
         transform: scale(1) rotate(0deg); 
         opacity: 1; 
     }
-    .block-container {
-            padding-top: 1rem;
-            padding-bottom: 0rem;
-    }
-    header {
-            background-color: transparent !important;
-    }
-    footer {
-            visibility: hidden;
-    }
-    .main > div {
-            padding-top: 0rem;
-    }
+}
+/* Remove padding padrão do Streamlit */
+.block-container {
+    padding-top: 1rem;
+    padding-bottom: 0rem;
+}
+header {
+    background-color: transparent !important;
+}
+footer {
+    visibility: hidden;
+}
+.main > div {
+    padding-top: 0rem;
+}
+.main .block-container {
+    max-width: 100%;
+    padding-top: 1rem;
+    padding-right: 1rem;
+    padding-left: 1rem;
+    padding-bottom: 1rem;
 }
 </style>
-""", unsafe_allow_html=True
-    )
+""", unsafe_allow_html=True)
 
 # =========================
 # TÍTULO
