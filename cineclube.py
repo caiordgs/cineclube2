@@ -39,6 +39,8 @@ else:
 # =========================
 st.set_page_config(page_title="Cine Clube", page_icon="🎬")
 
+
+
 ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD")
 
 # =========================
@@ -128,6 +130,19 @@ st.markdown(
     100% { 
         transform: scale(1) rotate(0deg); 
         opacity: 1; 
+    }
+    .block-container {
+            padding-top: 1rem;
+            padding-bottom: 0rem;
+    }
+    header {
+            background-color: transparent !important;
+    }
+    footer {
+            visibility: hidden;
+    }
+    .main > div {
+            padding-top: 0rem;
     }
 }
 </style>
